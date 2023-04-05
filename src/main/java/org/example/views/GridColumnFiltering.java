@@ -25,24 +25,21 @@ public class GridColumnFiltering extends Div {
     public GridColumnFiltering() {
         // tag::snippet1[]
         Grid<Person> grid = new Grid<>(Person.class, false);
-        Grid.Column<Person> nameColumn = grid.addColumn(createPersonRenderer())
-                .setWidth("230px").setFlexGrow(0);
-        Grid.Column<Person> emailColumn = grid.addColumn(Person::getEmail);
-        Grid.Column<Person> professionColumn = grid
-                .addColumn(Person::getProfession);
+        Grid.Column<Person> nameColumn = grid.addColumn(p -> p.getFirstName() + " " + p.getLastName())
+                .setHeader("Name");
+        grid.addColumns("email", "profession");
 
         List<Person> people = DataService.getPeople();
         GridListDataView<Person> dataView = grid.setItems(people);
         PersonFilter personFilter = new PersonFilter(dataView);
 
-        grid.getHeaderRows().clear();
         HeaderRow headerRow = grid.appendHeaderRow();
 
         headerRow.getCell(nameColumn).setComponent(
                 createFilterHeader("Name", personFilter::setFullName));
-        headerRow.getCell(emailColumn).setComponent(
+        headerRow.getCell(grid.getColumnByKey("email")).setComponent(
                 createFilterHeader("Email", personFilter::setEmail));
-        headerRow.getCell(professionColumn).setComponent(
+        headerRow.getCell(grid.getColumnByKey("profession")).setComponent(
                 createFilterHeader("Profession", personFilter::setProfession));
         // end::snippet1[]
 
@@ -51,22 +48,14 @@ public class GridColumnFiltering extends Div {
 
     private static Component createFilterHeader(String labelText,
             Consumer<String> filterChangeConsumer) {
-        Label label = new Label(labelText);
-        label.getStyle().set("padding-top", "var(--lumo-space-m)")
-                .set("font-size", "var(--lumo-font-size-xs)");
         TextField textField = new TextField();
-        textField.setValueChangeMode(ValueChangeMode.EAGER);
+        textField.setPlaceholder("Filter by " + labelText + "...");
+        textField.setValueChangeMode(ValueChangeMode.LAZY);
         textField.setClearButtonVisible(true);
-        textField.addThemeVariants(TextFieldVariant.LUMO_SMALL);
         textField.setWidthFull();
-        textField.getStyle().set("max-width", "100%");
         textField.addValueChangeListener(
                 e -> filterChangeConsumer.accept(e.getValue()));
-        VerticalLayout layout = new VerticalLayout(label, textField);
-        layout.getThemeList().clear();
-        layout.getThemeList().add("spacing-xs");
-
-        return layout;
+        return textField;
     }
 
     private static class PersonFilter {
@@ -110,15 +99,5 @@ public class GridColumnFiltering extends Div {
                     || value.toLowerCase().contains(searchTerm.toLowerCase());
         }
     }
-
-    private static Renderer<Person> createPersonRenderer() {
-        return LitRenderer.<Person> of(
-                "<vaadin-horizontal-layout style=\"align-items: center;\" theme=\"spacing\">"
-                        + "  <vaadin-avatar img=\"${item.pictureUrl}\" name=\"${item.fullName}\"></vaadin-avatar>"
-                        + "  <span> ${item.fullName} </span>"
-                        + "</vaadin-horizontal-layout>")
-                .withProperty("pictureUrl", Person::getPictureUrl)
-                .withProperty("fullName", Person::getFullName);
-    }
-
+    
 }
