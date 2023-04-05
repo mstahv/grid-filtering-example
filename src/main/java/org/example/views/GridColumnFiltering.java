@@ -19,6 +19,7 @@ import com.vaadin.flow.router.Route;
 import java.util.List;
 import java.util.function.Consumer;
 
+@Route
 public class GridColumnFiltering extends Div {
 
     public GridColumnFiltering() {
